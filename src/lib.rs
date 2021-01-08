@@ -1,7 +1,7 @@
 use plotters::coord::types::RangedCoordf64;
 use plotters::coord::Shift;
 use plotters::prelude::*;
-use spade::delaunay::{DelaunayTriangulation, DelaunayWalkLocate};
+use spade::delaunay::{DelaunayTriangulation, DelaunayWalkLocate, FloatDelaunayTriangulation};
 use spade::kernels::FloatKernel;
 
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
@@ -21,6 +21,19 @@ pub fn chart<'a, D: DrawingBackend>(
         .unwrap();
     chart.configure_mesh().draw().unwrap();
     chart
+}
+
+pub fn trimesh<'a, D: DrawingBackend>(
+    x: &[f64],
+    y: &[f64],
+    color: [u8; 3],
+    chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
+) {
+    let mut tri = FloatDelaunayTriangulation::with_walk_locate();
+    x.iter().zip(y.iter()).for_each(|(x, y)| {
+        tri.insert([*x, *y]);
+    });
+    tri.mesh(&x, &y, color, chart);
 }
 
 pub trait TriPlot {
@@ -103,12 +116,5 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
                     .unwrap();
             });
         self
-    }
-}
-
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }
