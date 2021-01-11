@@ -3,7 +3,6 @@ use plotters::coord::Shift;
 use plotters::prelude::*;
 use spade::delaunay::{DelaunayTriangulation, DelaunayWalkLocate, FloatDelaunayTriangulation};
 use spade::kernels::FloatKernel;
-use triangle_rs::Delaunay;
 
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
     let plot = SVGBackend::new(filename, (768, 768)).into_drawing_area();
@@ -54,42 +53,6 @@ pub trait TriPlot {
     ) -> &Self;
 }
 
-impl TriPlot for Delaunay {
-    fn mesh<'a, D: DrawingBackend>(
-        &self,
-        x: &[f64],
-        y: &[f64],
-        color: [u8; 3],
-        chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self {
-        let color = RGBColor(color[0], color[1], color[2]);
-        self.triangle_iter()
-            .map(|t| {
-                t
-                    .iter()
-                    .map(|&i| (x[i], y[i]))
-                    .collect::<Vec<(f64, f64)>>()
-            })
-            .for_each(|v| {
-                chart
-                    .draw_series(LineSeries::new(
-                        v.iter().cycle().take(4).map(|(x, y)| (*x, *y)),
-                        &color,
-                    ))
-                    .unwrap();
-            });
-        self
-    }
-    fn map<'a, D: DrawingBackend>(
-        &self,
-        _x: &[f64],
-        _y: &[f64],
-        _z: &[f64],
-        _chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self {
-        self
-    }
-}
 impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate> {
     fn mesh<'a, D: DrawingBackend>(
         &self,
