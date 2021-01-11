@@ -9,4 +9,3 @@ edition = "2018"
 [dependencies]
 plotters = "0.3.0"
 spade = "1.8.2"
-triangle-rs = { git = "https://github.com/rconan/triangle-rs.git", branch = "main" }
