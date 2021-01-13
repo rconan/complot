@@ -9,6 +9,11 @@ pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
     plot.fill(&WHITE).unwrap();
     plot
 }
+pub fn png_canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
+    let plot = BitMapBackend::new(filename, (768, 768)).into_drawing_area();
+    plot.fill(&WHITE).unwrap();
+    plot
+}
 
 pub fn chart<'a, D: DrawingBackend>(
     lims: [f64; 4],
@@ -17,6 +22,8 @@ pub fn chart<'a, D: DrawingBackend>(
     let mut chart = ChartBuilder::on(plot)
         .set_label_area_size(LabelAreaPosition::Left, 40)
         .set_label_area_size(LabelAreaPosition::Bottom, 40)
+        .margin_top(40)
+        .margin_right(40)
         .build_cartesian_2d(lims[0]..lims[1], lims[2]..lims[3])
         .unwrap();
     chart.configure_mesh().draw().unwrap();
