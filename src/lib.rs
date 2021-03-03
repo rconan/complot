@@ -43,6 +43,19 @@ pub fn trimesh<'a, D: DrawingBackend>(
     tri.mesh(&x, &y, color, chart);
 }
 
+pub fn trimap<'a, D: DrawingBackend>(
+    x: &[f64],
+    y: &[f64],
+    z: &[f64],
+    chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
+) {
+    let mut tri = FloatDelaunayTriangulation::with_walk_locate();
+    x.iter().zip(y.iter()).for_each(|(x, y)| {
+        tri.insert([*x, *y]);
+    });
+    tri.map(&x, &y, &z, chart);
+}
+
 pub trait TriPlot {
     fn mesh<'a, D: DrawingBackend>(
         &self,
@@ -118,7 +131,7 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
                         if p.is_nan() {
                             BLACK.filled()
                         } else {
-                            HSLColor(*p, 0.5, 0.4).filled()
+                            HSLColor(*p*0.65, 0.5, 0.4).filled()
                         },
                     )))
                     .unwrap();
