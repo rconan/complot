@@ -40,7 +40,11 @@ pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shi
     let cells_max = data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let cells_min = data.iter().cloned().fold(f64::INFINITY, f64::min);
     let cmap = colorous::MAGMA;
-
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .disable_y_mesh()
+        .draw().unwrap();
     chart
         .draw_series(data.iter().enumerate().map(|(k, v)| {
             let i = (k / n) as i32;
