@@ -1,3 +1,4 @@
+use colorous;
 use plotters::coord::types::RangedCoordf64;
 use plotters::coord::Shift;
 use plotters::prelude::*;
@@ -28,6 +29,27 @@ pub fn chart<'a, D: DrawingBackend>(
         .unwrap();
     chart.configure_mesh().draw().unwrap();
     chart
+}
+
+pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shift>) {
+    let n = (data.len() as f64).sqrt() as usize;
+
+    let mut chart = ChartBuilder::on(root)
+        .build_cartesian_2d(0i32..(n - 1) as i32, 0i32..(n - 1) as i32)
+        .expect("Failed building chart");
+    let cells_max = data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let cells_min = data.iter().cloned().fold(f64::INFINITY, f64::min);
+    let cmap = colorous::CUBEHELIX;
+
+    chart
+        .draw_series(data.iter().enumerate().map(|(k, v)| {
+            let i = (k / n) as i32;
+            let j = (k % n) as i32;
+            let u = (v - cells_min) / (cells_max - cells_min);
+            let c = cmap.eval_continuous(u).as_tuple();
+            Rectangle::new([(i, j), (i + 1, j + 1)], RGBColor(c.0, c.1, c.2).filled())
+        }))
+        .expect("Failed drawing image");
 }
 
 pub fn trimesh<'a, D: DrawingBackend>(
@@ -131,7 +153,7 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
                         if p.is_nan() {
                             BLACK.filled()
                         } else {
-                            HSLColor(*p*0.65, 0.5, 0.4).filled()
+                            HSLColor(*p * 0.65, 0.5, 0.4).filled()
                         },
                     )))
                     .unwrap();
