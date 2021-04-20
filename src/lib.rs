@@ -39,7 +39,7 @@ pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shi
         .expect("Failed building chart");
     let cells_max = data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let cells_min = data.iter().cloned().fold(f64::INFINITY, f64::min);
-    let cmap = colorous::CUBEHELIX;
+    let cmap = colorous::MAGMA;
 
     chart
         .draw_series(data.iter().enumerate().map(|(k, v)| {
