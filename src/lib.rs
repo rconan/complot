@@ -16,6 +16,28 @@ pub fn png_canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
     plot
 }
 
+pub struct Font {
+    pub r#type: String,
+    pub size: usize,
+}
+impl Default for Font {
+    fn default() -> Self {
+        Self {
+            r#type: String::from("sans-serif"),
+            size: 12,
+        }
+    }
+}
+#[derive(Default)]
+pub struct Text {
+    pub text: String,
+    pub font: Option<Font>,
+}
+#[derive(Default)]
+pub struct Axis {
+    pub title: Option<Text>
+}
+
 pub fn chart<'a, D: DrawingBackend>(
     lims: [f64; 4],
     plot: &'a DrawingArea<D, Shift>,
@@ -39,7 +61,7 @@ pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shi
         .expect("Failed building chart");
     let cells_max = data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let cells_min = data.iter().cloned().fold(f64::INFINITY, f64::min);
-    let cmap = colorous::MAGMA;
+    let cmap = colorous::CUBEHELIX;
     chart
         .configure_mesh()
         .disable_x_mesh()
