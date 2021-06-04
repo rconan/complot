@@ -35,7 +35,7 @@ pub struct Text {
 }
 #[derive(Default)]
 pub struct Axis {
-    pub title: Option<Text>
+    pub title: Option<Text>,
 }
 
 pub fn chart<'a, D: DrawingBackend>(
@@ -66,7 +66,8 @@ pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shi
         .configure_mesh()
         .disable_x_mesh()
         .disable_y_mesh()
-        .draw().unwrap();
+        .draw()
+        .unwrap();
     chart
         .draw_series(data.iter().enumerate().map(|(k, v)| {
             let i = (k / n) as i32;
@@ -164,6 +165,7 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
             .iter()
             .map(|p| (p - cells_min) / (cells_max - cells_min))
             .collect();
+        let cmap = colorous::CIVIDIS;
         self.triangles()
             .map(|t| {
                 t.as_triangle()
@@ -179,7 +181,8 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
                         if p.is_nan() {
                             BLACK.filled()
                         } else {
-                            HSLColor(*p * 0.65, 0.5, 0.4).filled()
+                            let c = cmap.eval_continuous(*p).as_tuple();
+                            RGBColor(c.0, c.1, c.2).filled()
                         },
                     )))
                     .unwrap();
