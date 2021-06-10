@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 colorous = "1.0.3"
+num-traits = "0.2.14"
 plotters = "0.3.0"
 spade = "1.8.2"
