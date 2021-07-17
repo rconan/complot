@@ -1,11 +1,12 @@
 use colorous;
 use num_traits::{cast::AsPrimitive, Float};
-use plotters::coord::types::RangedCoordf64;
-use plotters::coord::Shift;
-use plotters::prelude::*;
-use spade::delaunay::{DelaunayTriangulation, DelaunayWalkLocate, FloatDelaunayTriangulation};
-use spade::kernels::FloatKernel;
+use plotters::{
+    coord::{types::RangedCoordf64, Shift},
+    prelude::*,
+};
 use std::error::Error;
+
+pub mod triplot;
 
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
     let plot = SVGBackend::new(filename, (768, 768)).into_drawing_area();
@@ -233,116 +234,4 @@ pub fn heatmap<T: Float + AsPrimitive<f64>>(
         Rectangle::new([(x, 0.), (x + dx, 1.)], RGBColor(c.0, c.1, c.2).filled())
     }))?;
     Ok(())
-}
-
-pub fn trimesh<'a, D: DrawingBackend>(
-    x: &[f64],
-    y: &[f64],
-    color: [u8; 3],
-    chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-) {
-    let mut tri = FloatDelaunayTriangulation::with_walk_locate();
-    x.iter().zip(y.iter()).for_each(|(x, y)| {
-        tri.insert([*x, *y]);
-    });
-    tri.mesh(&x, &y, color, chart);
-}
-
-pub fn trimap<'a, D: DrawingBackend>(
-    x: &[f64],
-    y: &[f64],
-    z: &[f64],
-    chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-) {
-    let mut tri = FloatDelaunayTriangulation::with_walk_locate();
-    x.iter().zip(y.iter()).for_each(|(x, y)| {
-        tri.insert([*x, *y]);
-    });
-    tri.map(&x, &y, &z, chart);
-}
-
-pub trait TriPlot {
-    fn mesh<'a, D: DrawingBackend>(
-        &self,
-        x: &[f64],
-        y: &[f64],
-        color: [u8; 3],
-        chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self;
-    fn map<'a, D: DrawingBackend>(
-        &self,
-        x: &[f64],
-        y: &[f64],
-        z: &[f64],
-        chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self;
-}
-
-impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate> {
-    fn mesh<'a, D: DrawingBackend>(
-        &self,
-        x: &[f64],
-        y: &[f64],
-        color: [u8; 3],
-        chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self {
-        let color = RGBColor(color[0], color[1], color[2]);
-        self.triangles()
-            .map(|t| {
-                t.as_triangle()
-                    .iter()
-                    .map(|&i| (x[i.fix()], y[i.fix()]))
-                    .collect::<Vec<(f64, f64)>>()
-            })
-            .for_each(|v| {
-                chart
-                    .draw_series(LineSeries::new(
-                        v.iter().cycle().take(4).map(|(x, y)| (*x, *y)),
-                        &color,
-                    ))
-                    .unwrap();
-            });
-        self
-    }
-    fn map<'a, D: DrawingBackend>(
-        &self,
-        x: &[f64],
-        y: &[f64],
-        z: &[f64],
-        chart: &mut ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
-    ) -> &Self {
-        let cells: Vec<f64> = self
-            .triangles()
-            .map(|t| t.as_triangle().iter().fold(0., |a, &i| a + z[i.fix()] / 3.))
-            .collect();
-        let cells_max = cells.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        let cells_min = cells.iter().cloned().fold(f64::INFINITY, f64::min);
-        let unit_cells: Vec<f64> = cells
-            .iter()
-            .map(|p| (p - cells_min) / (cells_max - cells_min))
-            .collect();
-        let cmap = colorous::CIVIDIS;
-        self.triangles()
-            .map(|t| {
-                t.as_triangle()
-                    .iter()
-                    .map(|&i| (x[i.fix()], y[i.fix()]))
-                    .collect::<Vec<(f64, f64)>>()
-            })
-            .zip(unit_cells.iter())
-            .for_each(|(v, p)| {
-                chart
-                    .draw_series(std::iter::once(Polygon::new(
-                        v.clone(),
-                        if p.is_nan() {
-                            BLACK.filled()
-                        } else {
-                            let c = cmap.eval_continuous(*p).as_tuple();
-                            RGBColor(c.0, c.1, c.2).filled()
-                        },
-                    )))
-                    .unwrap();
-            });
-        self
-    }
 }
