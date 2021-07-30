@@ -4,9 +4,10 @@ use plotters::{
     coord::{types::RangedCoordf64, Shift},
     prelude::*,
 };
-use std::error::Error;
+use std::iter::FromIterator;
+use std::{error::Error, marker::PhantomData};
 
-pub mod triplot;
+pub mod tri;
 
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
     let plot = SVGBackend::new(filename, (768, 768)).into_drawing_area();
@@ -82,6 +83,144 @@ pub fn imagesc<'a, D: DrawingBackend>(data: &[f64], root: &'a DrawingArea<D, Shi
         .expect("Failed drawing image");
 }
 
+pub struct Plot {}
+impl<'a> FromIterator<f64> for Plot {
+    fn from_iter<I: IntoIterator<Item = f64>>(iter: I) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let xy: Vec<_> = iter
+            .into_iter()
+            .collect::<Vec<f64>>()
+            .chunks(2)
+            .map(|xy| (xy[0], xy[1]))
+            .collect();
+        let (x_max, y_max) = xy.iter().cloned().fold(
+            (f64::NEG_INFINITY, f64::NEG_INFINITY),
+            |(fx, fy), (x, y)| (fx.max(x), fy.max(y)),
+        );
+        let (x_min, y_min) = xy
+            .iter()
+            .cloned()
+            .fold((f64::INFINITY, f64::INFINITY), |(fx, fy), (x, y)| {
+                (fx.min(x), fy.min(y))
+            });
+        let mut ax = chart([x_min, x_max, y_min, y_max], &fig);
+        ax.draw_series(xy.into_iter().map(|xy| Circle::new(xy, 3, RED.filled())))
+            .unwrap();
+        Plot {}
+    }
+}
+impl<'a> FromIterator<&'a f64> for Plot {
+    fn from_iter<I: IntoIterator<Item = &'a f64>>(iter: I) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let xy: Vec<_> = iter
+            .into_iter()
+            .cloned()
+            .collect::<Vec<f64>>()
+            .chunks(2)
+            .map(|xy| (xy[0], xy[1]))
+            .collect();
+        let (x_max, y_max) = xy.iter().cloned().fold(
+            (f64::NEG_INFINITY, f64::NEG_INFINITY),
+            |(fx, fy), (x, y)| (fx.max(x), fy.max(y)),
+        );
+        let (x_min, y_min) = xy
+            .iter()
+            .cloned()
+            .fold((f64::INFINITY, f64::INFINITY), |(fx, fy), (x, y)| {
+                (fx.min(x), fy.min(y))
+            });
+        let mut ax = chart([x_min, x_max, y_min, y_max], &fig);
+        ax.draw_series(xy.into_iter().map(|xy| Circle::new(xy, 3, RED.filled())))
+            .unwrap();
+        Plot {}
+    }
+}
+impl<'a> From<&'a [f64]> for Plot {
+    fn from(points: &[f64]) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let lim = 0.55_f64;
+        let mut ax = chart([-lim, lim, -lim, lim], &fig);
+        ax.draw_series(
+            points
+                .iter()
+                .enumerate()
+                .map(|(k, &point)| Circle::new((k as f64, point), 3, RED.filled())),
+        )
+        .unwrap();
+        Plot {}
+    }
+}
+impl<'a> From<[&'a [f64]; 2]> for Plot {
+    fn from(points: [&'a [f64]; 2]) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let lim = 0.55_f64;
+        let mut ax = chart([-lim, lim, -lim, lim], &fig);
+        ax.draw_series(
+            points[0]
+                .iter()
+                .zip(points[1].iter())
+                .map(|(&x, &y)| Circle::new((x, y), 3, RED.filled())),
+        )
+        .unwrap();
+        Plot {}
+    }
+}
+impl<'a> From<Vec<&'a [f64]>> for Plot {
+    fn from(points_set: Vec<&[f64]>) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let lim = 0.55_f64;
+        let mut ax = chart([-lim, lim, -lim, lim], &fig);
+        for points in points_set.iter() {
+            ax.draw_series(
+                points
+                    .chunks(2)
+                    .map(|point| Circle::new((point[0], point[1]), 3, RED.filled())),
+            )
+            .unwrap();
+        }
+        Plot {}
+    }
+}
+impl<'a> From<(&'a [f64], Config<'a>)> for Plot {
+    fn from((points, config): (&[f64], Config)) -> Self {
+        let filename = config.filename.unwrap_or_else(|| "plot.svg".to_string());
+        let fig = canvas(&filename);
+        let lim = 0.55_f64;
+        let mut ax = chart([-lim, lim, -lim, lim], &fig);
+        ax.draw_series(
+            points
+                .chunks(2)
+                .map(|point| Circle::new((point[0], point[1]), 3, RED.filled())),
+        )
+        .unwrap();
+        Plot {}
+    }
+}
+
+pub struct Heatmap<T: Float + AsPrimitive<f64>> {
+    data: std::marker::PhantomData<T>,
+}
+impl<T: Float + AsPrimitive<f64>> From<(&[T], (usize, usize))> for Heatmap<T> {
+    fn from(data: (&[T], (usize, usize))) -> Self {
+        if heatmap(data, None).is_err() {
+            println!("Complot::Heatmap has failed!")
+        };
+        Heatmap {
+            data: PhantomData {},
+        }
+    }
+}
+impl<'a, T: Float + AsPrimitive<f64>> From<((&'a [T], (usize, usize)), Config<'a>)> for Heatmap<T> {
+    fn from((data, config): ((&'a [T], (usize, usize)), Config)) -> Self {
+        if heatmap(data, Some(config)).is_err() {
+            println!("Complot::Heatmap has failed!")
+        };
+        Heatmap {
+            data: PhantomData {},
+        }
+    }
+}
+
 /// Heatmap configuration parameters
 #[derive(Default, Clone)]
 pub struct XAxis<'a> {
@@ -148,6 +287,10 @@ impl<'a> Config<'a> {
         Self { xaxis, ..self }
     }
 }
+/*pub struct Figure<'a> {
+    backend: DrawingArea<BitMapBackend<'a>, Shift>,
+    axe: ChartContext<'a, BitMapBackend<'a>, Cartesian2d<RangedCoordf64, RangedCoordf64>>,
+}*/
 /// Heatmap
 pub fn heatmap<T: Float + AsPrimitive<f64>>(
     data: (&[T], (usize, usize)),

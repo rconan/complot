@@ -5,7 +5,34 @@ use spade::{
     delaunay::{DelaunayTriangulation, DelaunayWalkLocate, FloatDelaunayTriangulation},
     kernels::FloatKernel,
 };
-use std::{error::Error, ops::Range};
+use std::{error::Error, iter::FromIterator, ops::Range};
+
+pub struct Mesh {}
+impl<'a> FromIterator<f64> for Mesh {
+    fn from_iter<I: IntoIterator<Item = f64>>(iter: I) -> Self {
+        let fig = crate::canvas("complot-tri-mesh.svg");
+        let xy: Vec<_> = iter
+            .into_iter()
+            .collect::<Vec<f64>>()
+            .chunks(2)
+            .map(|xy| (xy[0], xy[1]))
+            .collect();
+        let (x_max, y_max) = xy.iter().cloned().fold(
+            (f64::NEG_INFINITY, f64::NEG_INFINITY),
+            |(fx, fy), (x, y)| (fx.max(x), fy.max(y)),
+        );
+        let (x_min, y_min) = xy
+            .iter()
+            .cloned()
+            .fold((f64::INFINITY, f64::INFINITY), |(fx, fy), (x, y)| {
+                (fx.min(x), fy.min(y))
+            });
+        let mut ax = crate::chart([x_min, x_max, y_min, y_max], &fig);
+        let (x, y): (Vec<_>, Vec<_>) = xy.into_iter().unzip();
+        trimesh(&x, &y, [0; 3], &mut ax);
+        Mesh {}
+    }
+}
 
 pub fn trimesh<'a, D: DrawingBackend>(
     x: &[f64],
@@ -181,7 +208,7 @@ impl TriPlot for DelaunayTriangulation<[f64; 2], FloatKernel, DelaunayWalkLocate
         mesh.axis_style(WHITE)
             .set_tick_mark_size(LabelAreaPosition::Bottom, 5)
             .x_label_style(("sans-serif", 14, &WHITE))
-            .x_desc("WFE [micron]")
+            .x_desc("Surface error [micron]")
             .draw()?;
         let dx = (cells_max - cells_min) / (800 - 1) as f64;
         let cmap = colorous::CIVIDIS;
