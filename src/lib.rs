@@ -252,9 +252,9 @@ impl<'a> Default for Config<'a> {
             filename: Default::default(),
             title: None,
             xaxis: Default::default(),
-            cmap: colorous::MAGMA,
+            cmap: colorous::VIRIDIS,
             cmap_minmax: None,
-            osf: 2,
+            osf: 1,
         }
     }
 }
