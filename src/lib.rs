@@ -7,6 +7,7 @@ use plotters::{
 use std::iter::FromIterator;
 use std::{error::Error, marker::PhantomData};
 
+#[cfg(feature = "tri")]
 pub mod tri;
 
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
@@ -42,7 +43,7 @@ pub struct Axis {
     pub title: Option<Text>,
 }
 
-pub fn chart<'a, D: DrawingBackend>(
+pub fn chart <'a, D: DrawingBackend>(
     lims: [f64; 4],
     plot: &'a DrawingArea<D, Shift>,
 ) -> ChartContext<'a, D, Cartesian2d<RangedCoordf64, RangedCoordf64>> {
@@ -106,6 +107,44 @@ impl<'a> FromIterator<f64> for Plot {
         let mut ax = chart([x_min, x_max, y_min, y_max], &fig);
         ax.draw_series(xy.into_iter().map(|xy| Circle::new(xy, 3, RED.filled())))
             .unwrap();
+        Plot {}
+    }
+}
+impl<'a> FromIterator<(f64, Vec<f64>)> for Plot {
+    fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
+        let fig = canvas("m2_s7_delaunay.svg");
+        let xy: Vec<_> = iter.into_iter().collect();
+        let (x_max, y_max) = xy.iter().cloned().fold(
+            (f64::NEG_INFINITY, f64::NEG_INFINITY),
+            |(fx, fy), (x, y)| {
+                (
+                    fx.max(x),
+                    fy.max(y.iter().cloned().fold(f64::NEG_INFINITY, |fy, y| fy.max(y))),
+                )
+            },
+        );
+        let (x_min, y_min) =
+            xy.iter()
+                .cloned()
+                .fold((f64::INFINITY, f64::INFINITY), |(fx, fy), (x, y)| {
+                    (
+                        fx.min(x),
+                        fy.min(y.iter().cloned().fold(f64::INFINITY, |fy, y| fy.min(y))),
+                    )
+                });
+        let mut ax = chart([x_min, x_max, y_min, y_max], &fig);
+        let n_y = xy.iter().nth(0).unwrap().1.len();
+        let data: Vec<_> = xy
+            .into_iter()
+            .flat_map(|(x, y)| y.into_iter().map(|y| (x, y)).collect::<Vec<(f64, f64)>>())
+            .collect();
+        for k in 0..n_y {
+            ax.draw_series(LineSeries::new(
+                data.iter().skip(k).step_by(n_y).cloned(),
+                &BLACK,
+            ))
+            .unwrap();
+        }
         Plot {}
     }
 }
