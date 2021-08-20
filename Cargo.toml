@@ -10,7 +10,3 @@ edition = "2018"
 colorous = "1.0.3"
 num-traits = "0.2.14"
 plotters = "0.3.0"
-spade = {version = "1.8.2", optional=true}
-
-[features]
-tri = ["spade"]
