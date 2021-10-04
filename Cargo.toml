@@ -3,10 +3,14 @@ name = "complot"
 version = "0.1.0"
 authors = ["Rod Conan <rconan@gmto.org>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "An idiomatic high-level wrapper to Rust plotters visualization crate"
+repository = "https://github.com/rconan/complot"
+documentation = "https://docs.rs/complot"
+readme = "README.md"
+categories = ["visualization"]
 
 [dependencies]
 colorous = "1.0.3"
 num-traits = "0.2.14"
-plotters = "0.3.0"
+plotters = "^0.3"

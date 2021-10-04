@@ -1,3 +1,18 @@
+//! Complot is an idiomatic high-level wrapper to Rust [plotters](https://docs.rs/plotters/0.3.0/plotters/) visualization crate.
+//! Complot allows to quickly visually inspect data without any other knowledge than the Rust standard library.
+//! Complot relies on Rust traits from the standard libray to produce the plots and on a simple tree of structures to configure the plots.
+//!
+//! # Example
+//!
+//! Plotting sine and cosine functions
+//! ```
+//!(0..100).map(|k| {
+//!                   let o = 5.*std::f64::consts::PI*k as f64/100.;
+//!                   let (s,c) = o.sin_cos();
+//!                   (o,vec![s,c])
+//!                  }).collect::<complot::Plot>();
+//!```
+
 mod line;
 pub use line::Plot;
 mod scatter;
