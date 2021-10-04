@@ -44,6 +44,21 @@ impl<'a> Axis<'a> {
     }
 }
 #[derive(Clone)]
+pub struct Colorbar<'a> {
+    cmap: colorous::Gradient,
+    label: Option<&'a str>,
+    range: Option<Range<f64>>,
+}
+impl<'a> Default for Colorbar<'a> {
+    fn default() -> Self {
+        Self {
+            cmap: colorous::VIRIDIS,
+            label: None,
+            range: None,
+        }
+    }
+}
+#[derive(Clone)]
 pub struct Config<'a> {
     filename: Option<String>,
     title: Option<String>,
@@ -51,6 +66,7 @@ pub struct Config<'a> {
     yaxis: Axis<'a>,
     cmap: colorous::Gradient,
     cmap_minmax: Option<(f64, f64)>,
+    colorbar: Option<Colorbar<'a>>,
     osf: usize,
 }
 impl<'a> Default for Config<'a> {
@@ -62,6 +78,7 @@ impl<'a> Default for Config<'a> {
             yaxis: Default::default(),
             cmap: colorous::VIRIDIS,
             cmap_minmax: None,
+            colorbar: None,
             osf: 2,
         }
     }
@@ -102,6 +119,16 @@ impl<'a> Config<'a> {
             xaxis: axis.clone(),
             yaxis: axis,
             ..self
+        }
+    }
+    pub fn with_colorbar(self) -> Self {
+        if self.colorbar.is_none() {
+            Self {
+                colorbar: Default::default(),
+                ..self
+            }
+        } else {
+            self
         }
     }
     pub fn auto_range(&mut self, iters: Vec<&[(f64, Vec<f64>)]>) -> &mut Self {

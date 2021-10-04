@@ -1,4 +1,4 @@
-use super::Config;
+use super::{Colorbar, Config};
 use plotters::prelude::*;
 
 pub struct Mesh {}
@@ -68,7 +68,7 @@ pub struct Heatmap {}
 
 impl<'a, I: Iterator<Item = (Vec<(f64, f64)>, f64)>> From<(I, Option<Config<'a>>)> for Heatmap {
     fn from((iter, config): (I, Option<Config>)) -> Self {
-        let config = config.unwrap_or_default();
+        let config = config.unwrap_or_default().with_colorbar();
         let filename = config
             .filename
             .unwrap_or_else(|| "complot-plot.svg".to_string());
@@ -156,10 +156,14 @@ impl<'a, I: Iterator<Item = (Vec<(f64, f64)>, f64)>> From<(I, Option<Config<'a>>
         let mut mesh = colorbar_chart.configure_mesh();
         mesh.axis_style(WHITE)
             .set_tick_mark_size(LabelAreaPosition::Bottom, 5)
-            .x_label_style(("sans-serif", 14, &WHITE))
-            .x_desc("Surface error [micron]")
-            .draw()
-            .unwrap();
+            .x_label_style(("sans-serif", 14, &WHITE));
+        if let Some(Colorbar {
+            label: Some(label), ..
+        }) = config.colorbar
+        {
+            mesh.x_desc(label);
+        }
+        mesh.draw().unwrap();
         let dx = (cells_max - cells_min) / (size - 1) as f64;
         let cmap = colorous::CIVIDIS;
         colorbar_chart
