@@ -3,6 +3,7 @@ use colorous;
 use plotters::prelude::*;
 use std::iter::FromIterator;
 
+/// Line plots
 pub struct Plot {}
 impl Utils for Plot {}
 /*impl<'a> FromIterator<f64> for Plot {

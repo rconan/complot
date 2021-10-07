@@ -12,6 +12,20 @@
 //!                   (o,vec![s,c])
 //!                  }).collect::<complot::Plot>();
 //!```
+//! Plotting sine and cosine functions with custom properties
+//!```
+//!let _: complot::Plot = (
+//! (0..100).map(|k| {
+//!                    let o = 5.*std::f64::consts::PI*k as f64/100.;
+//!                    let (s,c) = o.sin_cos();
+//!                    (o,vec![s,c])
+//!                   }),
+//! Some(complot::Config::new()
+//!                       .filename("sin_cos.svg")
+//!                       .xaxis(complot::Axis::new().label("x label"))
+//!                       .yaxis(complot::Axis::new().label("y label")))
+//!                       ).into();
+//!```
 
 mod line;
 pub use line::Plot;
@@ -36,21 +50,25 @@ pub fn png_canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
     plot
 }
 
+/// Axis properties
 #[derive(Default, Clone)]
 pub struct Axis<'a> {
     label: Option<&'a str>,
     range: Option<Range<f64>>,
 }
 impl<'a> Axis<'a> {
+    /// Creates a new axis
     pub fn new() -> Self {
         Default::default()
     }
+    /// Sets the axis label
     pub fn label(self, label: &'a str) -> Self {
         Self {
             label: Some(label),
             ..self
         }
     }
+    /// Sets the axis range
     pub fn range(self, range: Range<f64>) -> Self {
         Self {
             range: Some(range),
@@ -58,6 +76,7 @@ impl<'a> Axis<'a> {
         }
     }
 }
+/// Colorbar properties
 #[derive(Clone)]
 pub struct Colorbar<'a> {
     cmap: colorous::Gradient,
@@ -73,6 +92,7 @@ impl<'a> Default for Colorbar<'a> {
         }
     }
 }
+/// Graph properties
 #[derive(Clone)]
 pub struct Config<'a> {
     filename: Option<String>,
@@ -99,15 +119,18 @@ impl<'a> Default for Config<'a> {
     }
 }
 impl<'a> Config<'a> {
+    /// Creates a new graph
     pub fn new() -> Self {
         Default::default()
     }
+    /// Sets the filename to save the graph to
     pub fn filename<T: AsRef<str>>(self, filename: T) -> Self {
         Self {
             filename: Some(filename.as_ref().to_string()),
             ..self
         }
     }
+    /// Sets the graph title
     pub fn title(self, title: String) -> Self {
         Self {
             title: Some(title),
@@ -117,18 +140,22 @@ impl<'a> Config<'a> {
     pub fn over_sampling_factor(self, osf: usize) -> Self {
         Self { osf, ..self }
     }
+    /// Sets the colormap upper and lower bounds
     pub fn cmap_minmax(self, cmap_minmax: (f64, f64)) -> Self {
         Self {
             cmap_minmax: Some(cmap_minmax),
             ..self
         }
     }
+    /// Sets the x-axis properties
     pub fn xaxis(self, xaxis: Axis<'a>) -> Self {
         Self { xaxis, ..self }
     }
+    /// Sets the y-axis properties
     pub fn yaxis(self, yaxis: Axis<'a>) -> Self {
         Self { yaxis, ..self }
     }
+    /// Sets the x and y axes to the same axis properties
     pub fn axes(self, axis: Axis<'a>) -> Self {
         Self {
             xaxis: axis.clone(),
@@ -136,6 +163,7 @@ impl<'a> Config<'a> {
             ..self
         }
     }
+    /// Adds a colorbar to the graph
     pub fn with_colorbar(self) -> Self {
         if self.colorbar.is_none() {
             Self {
@@ -162,7 +190,7 @@ impl<'a> Config<'a> {
         self
     }
 }
-pub trait Utils {
+trait Utils {
     fn xy_max(data: &[(f64, Vec<f64>)]) -> (f64, f64) {
         data.iter().cloned().fold(
             (f64::NEG_INFINITY, f64::NEG_INFINITY),
