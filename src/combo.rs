@@ -2,6 +2,7 @@ use super::{Config, Utils};
 use colorous;
 use plotters::prelude::*;
 
+/// Combines plots of different [`Kind`]s
 pub struct Combo {}
 impl Utils for Combo {}
 pub enum Kind {

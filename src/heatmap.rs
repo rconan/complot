@@ -5,6 +5,25 @@ use plotters::prelude::*;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 type Data<'a, T> = (&'a [T], (usize, usize));
 
+/// Heatmap chart
+///
+/// ```
+/// let n = 401;
+/// let data = (0..n)
+///     .flat_map(|k| {
+///         let x = (2.*std::f64::consts::PI * (k as f64 / (n - 1) as f64 - 0.5) * 5.0);
+///         let xc = x.cos();
+///         (0..n)
+///             .map(|k| {
+///                 let y = (2.*std::f64::consts::PI * (k as f64 / (n - 1) as f64 - 0.5) * 5.0);
+///                 let g = (-32f64.recip()*(x*x + y*y)).exp();
+///                 0.5*g*(1. + xc * y.cos())
+///             })
+///             .collect::<Vec<f64>>()
+///     })
+///     .collect::<Vec<f64>>();
+/// let _: complot::Heatmap = ((data.as_slice(), (n, n)), None).into();
+/// ```
 pub struct Heatmap {}
 impl<'a, T: Float + AsPrimitive<f64>> From<((&'a [T], (usize, usize)), Option<Config<'a>>)>
     for Heatmap
@@ -21,7 +40,9 @@ impl<'a, T: Float + AsPrimitive<f64>> From<((&'a [T], (usize, usize)), Option<Co
             let osf = config.osf;
             let res = rows;
             let size = res * osf;
-            let filename = config.filename.unwrap_or_else(|| "heatmap.png".to_string());
+            let filename = config
+                .filename
+                .unwrap_or_else(|| "complot-heatmap.png".to_string());
             let cmap = config.cmap;
 
             let width = size as u32 + 40;
@@ -97,7 +118,7 @@ impl<'a, T: Float + AsPrimitive<f64>> From<((&'a [T], (usize, usize)), Option<Co
             Ok(())
         }
         if let Err(e) = inner((data, config)) {
-            println!("Complot failed in Heatmap: {}", e);
+            eprintln!("Complot failed in Heatmap: {}", e);
         }
         Heatmap {}
     }

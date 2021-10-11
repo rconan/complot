@@ -5,6 +5,7 @@ use std::iter::FromIterator;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+/// Scatter plots
 pub struct Scatter {}
 impl Utils for Scatter {}
 
@@ -21,7 +22,7 @@ impl Utils for Scatter {}
 impl<'a> FromIterator<(f64, Vec<f64>)> for Scatter {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
         fn inner<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Result<()> {
-            let fig = SVGBackend::new("scatter.svg", (768, 512)).into_drawing_area();
+            let fig = SVGBackend::new("complot-scatter.svg", (768, 512)).into_drawing_area();
             fig.fill(&WHITE).unwrap();
             let xy: Vec<_> = iter.into_iter().collect();
             let (x_max, y_max) = Scatter::xy_max(&xy);
@@ -50,7 +51,7 @@ impl<'a> FromIterator<(f64, Vec<f64>)> for Scatter {
             Ok(())
         }
         if let Err(e) = inner(iter) {
-            println!("Complot failed in `Scatter::FromIterator` : {}", e);
+            eprintln!("Complot failed in `Scatter::FromIterator` : {}", e);
         }
         Scatter {}
     }
@@ -61,7 +62,7 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
         let config = config.unwrap_or_default();
         let filename = config
             .filename
-            .unwrap_or_else(|| "complot-plot.svg".to_string());
+            .unwrap_or_else(|| "complot-scatter.svg".to_string());
 
         let fig = SVGBackend::new(&filename, (768, 768)).into_drawing_area();
         fig.fill(&WHITE).unwrap();

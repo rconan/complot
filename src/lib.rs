@@ -28,7 +28,7 @@
 //!```
 
 mod line;
-pub use line::Plot;
+pub use line::{LinLog, LogLin, LogLog, Plot};
 mod scatter;
 pub use scatter::Scatter;
 use std::ops::Range;

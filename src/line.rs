@@ -45,7 +45,7 @@ impl Utils for Plot {}
 ///```
 impl<'a> FromIterator<(f64, Vec<f64>)> for Plot {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
-        let fig = SVGBackend::new("plot.svg", (768, 512)).into_drawing_area();
+        let fig = SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
         fig.fill(&WHITE).unwrap();
         let xy: Vec<_> = iter.into_iter().collect();
         let (x_max, y_max) = Self::xy_max(&xy);
@@ -140,5 +140,52 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
             println!("Complot failed in Plot: {}", e);
         }
         Plot {}
+    }
+}
+
+/// Log-log plots
+///
+/// Like [`Plot`] but for `(log10(x),vec![log10(y),...])` items
+pub struct LogLog;
+impl Utils for LogLog {}
+impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LogLog {
+    fn from((iter, config): (I, Option<Config>)) -> Self {
+        let _: Plot = (
+            iter.map(|(x, y)| {
+                (
+                    x.log10(),
+                    y.into_iter().map(|y| y.log10()).collect::<Vec<f64>>(),
+                )
+            }),
+            config,
+        )
+            .into();
+        LogLog
+    }
+}
+/// Log-Lin plots
+///
+/// Like [`Plot`] but for `(log10(x),vec![y,...])` items
+pub struct LogLin;
+impl Utils for LogLin {}
+impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LogLin {
+    fn from((iter, config): (I, Option<Config>)) -> Self {
+        let _: Plot = (iter.map(|(x, y)| (x.log10(), y)), config).into();
+        LogLin
+    }
+}
+/// Lin-log plots
+///
+/// Like [`Plot`] but for `(x,vec![log10(y),...])` items
+pub struct LinLog;
+impl Utils for LinLog {}
+impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LinLog {
+    fn from((iter, config): (I, Option<Config>)) -> Self {
+        let _: Plot = (
+            iter.map(|(x, y)| (x, y.into_iter().map(|y| y.log10()).collect::<Vec<f64>>())),
+            config,
+        )
+            .into();
+        LinLog
     }
 }
