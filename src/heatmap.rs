@@ -25,10 +25,8 @@ type Data<'a, T> = (&'a [T], (usize, usize));
 /// let _: complot::Heatmap = ((data.as_slice(), (n, n)), None).into();
 /// ```
 pub struct Heatmap {}
-impl<'a, T: Float + AsPrimitive<f64>> From<((&'a [T], (usize, usize)), Option<Config<'a>>)>
-    for Heatmap
-{
-    fn from((data, config): (Data<'a, T>, Option<Config>)) -> Self {
+impl<'a, T: Float + AsPrimitive<f64>> From<(Data<'a, T>, Option<Config>)> for Heatmap {
+    fn from((data, config): (Data<T>, Option<Config>)) -> Self {
         fn inner<T>((data, config): (Data<T>, Option<Config>)) -> Result<()>
         where
             T: Float + AsPrimitive<f64>,

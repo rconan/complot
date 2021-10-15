@@ -19,7 +19,7 @@ impl Utils for Scatter {}
 ///                   (c,vec![s])
 ///                  }).collect::<complot::Scatter>();
 ///```
-impl<'a> FromIterator<(f64, Vec<f64>)> for Scatter {
+impl FromIterator<(f64, Vec<f64>)> for Scatter {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
         fn inner<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Result<()> {
             let fig = SVGBackend::new("complot-scatter.svg", (768, 512)).into_drawing_area();
@@ -57,7 +57,7 @@ impl<'a> FromIterator<(f64, Vec<f64>)> for Scatter {
     }
 }
 
-impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for Scatter {
+impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Scatter {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         let config = config.unwrap_or_default();
         let filename = config

@@ -1,4 +1,4 @@
-use super::{Config, Utils};
+use super::{Axis, Config, Utils};
 use colorous;
 use plotters::prelude::*;
 use std::iter::FromIterator;
@@ -6,7 +6,7 @@ use std::iter::FromIterator;
 /// Line plots
 pub struct Plot {}
 impl Utils for Plot {}
-/*impl<'a> FromIterator<f64> for Plot {
+/*impl FromIterator<f64> for Plot {
     fn from_iter<I: IntoIterator<Item = f64>>(iter: I) -> Self {
         let fig = SVGBackend::new("plot.svg", (768, 512)).into_drawing_area();
         fig.fill(&WHITE).unwrap();
@@ -43,7 +43,7 @@ impl Utils for Plot {}
 ///                   (o,vec![s,c])
 ///                  }).collect::<complot::Plot>();
 ///```
-impl<'a> FromIterator<(f64, Vec<f64>)> for Plot {
+impl FromIterator<(f64, Vec<f64>)> for Plot {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
         let fig = SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
         fig.fill(&WHITE).unwrap();
@@ -78,7 +78,7 @@ impl<'a> FromIterator<(f64, Vec<f64>)> for Plot {
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for Plot {
+impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         fn inner<I: Iterator<Item = (f64, Vec<f64>)>>(
             (iter, config): (I, Option<Config>),
@@ -148,7 +148,7 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
 /// Like [`Plot`] but for `(log10(x),vec![log10(y),...])` items
 pub struct LogLog;
 impl Utils for LogLog {}
-impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LogLog {
+impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for LogLog {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         let _: Plot = (
             iter.map(|(x, y)| {
@@ -157,7 +157,50 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
                     y.into_iter().map(|y| y.log10()).collect::<Vec<f64>>(),
                 )
             }),
-            config,
+            Some(match config {
+                Some(config) => {
+                    match (&config.filename, &config.xaxis.label, &config.yaxis.label) {
+                        (None, None, None) => config.filename("complot-linlog.svg"),
+                        (None, None, Some(label)) => {
+                            let log10_label = format!("log10( {} )", label);
+                            config
+                                .filename("complot-linlog.svg")
+                                .yaxis(Axis::new().label(log10_label))
+                        }
+                        (None, Some(label), None) => {
+                            let log10_label = format!("log10( {} )", label);
+                            config
+                                .filename("complot-linlog.svg")
+                                .xaxis(Axis::new().label(log10_label))
+                        }
+                        (None, Some(xlabel), Some(ylabel)) => {
+                            let log10_xlabel = format!("log10( {} )", xlabel);
+                            let log10_ylabel = format!("log10( {} )", ylabel);
+                            config
+                                .filename("complot-linlog.svg")
+                                .xaxis(Axis::new().label(log10_xlabel))
+                                .yaxis(Axis::new().label(log10_ylabel))
+                        }
+                        (Some(_), None, None) => config,
+                        (Some(_), None, Some(label)) => {
+                            let log10_label = format!("log10( {} )", label);
+                            config.yaxis(Axis::new().label(log10_label))
+                        }
+                        (Some(_), Some(label), None) => {
+                            let log10_label = format!("log10( {} )", label);
+                            config.xaxis(Axis::new().label(log10_label))
+                        }
+                        (Some(_), Some(xlabel), Some(ylabel)) => {
+                            let log10_xlabel = format!("log10( {} )", xlabel);
+                            let log10_ylabel = format!("log10( {} )", ylabel);
+                            config
+                                .xaxis(Axis::new().label(log10_xlabel))
+                                .yaxis(Axis::new().label(log10_ylabel))
+                        }
+                    }
+                }
+                None => Config::new().filename("complot-linlog.svg"),
+            }),
         )
             .into();
         LogLog
@@ -168,9 +211,29 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
 /// Like [`Plot`] but for `(log10(x),vec![y,...])` items
 pub struct LogLin;
 impl Utils for LogLin {}
-impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LogLin {
+impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for LogLin {
     fn from((iter, config): (I, Option<Config>)) -> Self {
-        let _: Plot = (iter.map(|(x, y)| (x.log10(), y)), config).into();
+        let _: Plot = (
+            iter.map(|(x, y)| (x.log10(), y)),
+            Some(match config {
+                Some(config) => match (&config.filename, &config.xaxis.label) {
+                    (None, None) => config.filename("complot-linlog.svg"),
+                    (None, Some(label)) => {
+                        let log10_label = format!("log10( {} )", label);
+                        config
+                            .filename("complot-linlog.svg")
+                            .yaxis(Axis::new().label(log10_label))
+                    }
+                    (Some(_), Some(label)) => {
+                        let log10_label = format!("log10( {} )", label);
+                        config.yaxis(Axis::new().label(log10_label))
+                    }
+                    (Some(_), None) => config,
+                },
+                None => Config::new().filename("complot-linlog.svg"),
+            }),
+        )
+            .into();
         LogLin
     }
 }
@@ -179,11 +242,27 @@ impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for 
 /// Like [`Plot`] but for `(x,vec![log10(y),...])` items
 pub struct LinLog;
 impl Utils for LinLog {}
-impl<'a, I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config<'a>>)> for LinLog {
+impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for LinLog {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         let _: Plot = (
             iter.map(|(x, y)| (x, y.into_iter().map(|y| y.log10()).collect::<Vec<f64>>())),
-            config,
+            Some(match config {
+                Some(config) => match (&config.filename, &config.yaxis.label) {
+                    (None, None) => config.filename("complot-linlog.svg"),
+                    (None, Some(label)) => {
+                        let log10_label = format!("log10( {} )", label);
+                        config
+                            .filename("complot-linlog.svg")
+                            .yaxis(Axis::new().label(log10_label))
+                    }
+                    (Some(_), Some(label)) => {
+                        let log10_label = format!("log10( {} )", label);
+                        config.yaxis(Axis::new().label(log10_label))
+                    }
+                    (Some(_), None) => config,
+                },
+                None => Config::new().filename("complot-linlog.svg"),
+            }),
         )
             .into();
         LinLog

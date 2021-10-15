@@ -10,11 +10,11 @@ pub enum Kind {
     Scatter,
 }
 pub type Complot = (
-    Vec<Box<(dyn Iterator<Item = (f64, Vec<f64>)> + 'static)>>,
+    Vec<Box<(dyn Iterator<Item = (f64, Vec<f64>)>)>>,
     Vec<Kind>,
-    Option<Config<'static>>,
+    Option<Config>,
 );
-impl<'a> From<Complot> for Combo {
+impl From<Complot> for Combo {
     fn from((iters, draws, config): Complot) -> Self {
         let config = config.unwrap_or_default();
         let filename = config

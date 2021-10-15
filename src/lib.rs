@@ -20,12 +20,47 @@
 //!                    let (s,c) = o.sin_cos();
 //!                    (o,vec![s,c])
 //!                   }),
-//! Some(complot::Config::new()
-//!                       .filename("sin_cos.svg")
-//!                       .xaxis(complot::Axis::new().label("x label"))
-//!                       .yaxis(complot::Axis::new().label("y label")))
+//! complot::complot!("sin_cos.svg", xlabel="x label", ylabel= "y label")
 //!                       ).into();
 //!```
+
+/// Macro to set some graph properties
+///
+/// Returns [`Some`] [`Config`]
+/// ```
+/// complot!("filename")
+/// complot!("filename", xlabel="xlabel")
+/// complot!("filename", ylabel="xlabel")
+/// complot!("filename", xlabel="xlabel", ylabel="ylabel")
+///```
+#[macro_export]
+macro_rules! complot {
+    ($filename:literal) => {
+        Some(complot::Config::new().filename($filename))
+    };
+    ($filename:literal, xlabel=$xlabel:literal) => {
+        Some(
+            complot::Config::new()
+                .filename($filename)
+                .xaxis(complot::Axis::new().label($xlabel)),
+        )
+    };
+    ($filename:literal, ylabel=$ylabel:literal) => {
+        Some(
+            complot::Config::new()
+                .filename($filename)
+                .yaxis(complot::Axis::new().label($ylabel)),
+        )
+    };
+    ($filename:literal, xlabel=$xlabel:literal, ylabel=$ylabel:literal) => {
+        Some(
+            complot::Config::new()
+                .filename($filename)
+                .xaxis(complot::Axis::new().label($xlabel))
+                .yaxis(complot::Axis::new().label($ylabel)),
+        )
+    };
+}
 
 mod line;
 pub use line::{LinLog, LogLin, LogLog, Plot};
@@ -52,19 +87,22 @@ pub fn png_canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
 
 /// Axis properties
 #[derive(Default, Clone)]
-pub struct Axis<'a> {
-    label: Option<&'a str>,
+pub struct Axis {
+    label: Option<String>,
     range: Option<Range<f64>>,
 }
-impl<'a> Axis<'a> {
+impl Axis {
     /// Creates a new axis
     pub fn new() -> Self {
         Default::default()
     }
     /// Sets the axis label
-    pub fn label(self, label: &'a str) -> Self {
+    pub fn label<S>(self, label: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
-            label: Some(label),
+            label: Some(label.into()),
             ..self
         }
     }
@@ -78,12 +116,12 @@ impl<'a> Axis<'a> {
 }
 /// Colorbar properties
 #[derive(Clone)]
-pub struct Colorbar<'a> {
+pub struct Colorbar {
     cmap: colorous::Gradient,
-    label: Option<&'a str>,
+    label: Option<String>,
     range: Option<Range<f64>>,
 }
-impl<'a> Default for Colorbar<'a> {
+impl Default for Colorbar {
     fn default() -> Self {
         Self {
             cmap: colorous::VIRIDIS,
@@ -94,17 +132,17 @@ impl<'a> Default for Colorbar<'a> {
 }
 /// Graph properties
 #[derive(Clone)]
-pub struct Config<'a> {
+pub struct Config {
     filename: Option<String>,
     title: Option<String>,
-    xaxis: Axis<'a>,
-    yaxis: Axis<'a>,
+    xaxis: Axis,
+    yaxis: Axis,
     cmap: colorous::Gradient,
     cmap_minmax: Option<(f64, f64)>,
-    colorbar: Option<Colorbar<'a>>,
+    colorbar: Option<Colorbar>,
     osf: usize,
 }
-impl<'a> Default for Config<'a> {
+impl Default for Config {
     fn default() -> Self {
         Self {
             filename: Default::default(),
@@ -118,15 +156,18 @@ impl<'a> Default for Config<'a> {
         }
     }
 }
-impl<'a> Config<'a> {
+impl Config {
     /// Creates a new graph
     pub fn new() -> Self {
         Default::default()
     }
     /// Sets the filename to save the graph to
-    pub fn filename<T: AsRef<str>>(self, filename: T) -> Self {
+    pub fn filename<T>(self, filename: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
-            filename: Some(filename.as_ref().to_string()),
+            filename: Some(filename.into()),
             ..self
         }
     }
@@ -148,15 +189,15 @@ impl<'a> Config<'a> {
         }
     }
     /// Sets the x-axis properties
-    pub fn xaxis(self, xaxis: Axis<'a>) -> Self {
+    pub fn xaxis(self, xaxis: Axis) -> Self {
         Self { xaxis, ..self }
     }
     /// Sets the y-axis properties
-    pub fn yaxis(self, yaxis: Axis<'a>) -> Self {
+    pub fn yaxis(self, yaxis: Axis) -> Self {
         Self { yaxis, ..self }
     }
     /// Sets the x and y axes to the same axis properties
-    pub fn axes(self, axis: Axis<'a>) -> Self {
+    pub fn axes(self, axis: Axis) -> Self {
         Self {
             xaxis: axis.clone(),
             yaxis: axis,

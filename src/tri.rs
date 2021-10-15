@@ -4,7 +4,7 @@ use plotters::prelude::*;
 
 /// Draw a Delaunay mesh given the triangle vertices `vec![(x1,y1),(x2,y2),(x3,y3)]`
 pub struct Mesh {}
-impl<'a, I: Iterator<Item = Vec<(f64, f64)>>> From<(I, Option<Config<'a>>)> for Mesh {
+impl<I: Iterator<Item = Vec<(f64, f64)>>> From<(I, Option<Config>)> for Mesh {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         let config = config.unwrap_or_default();
         let filename = config
@@ -67,7 +67,7 @@ impl<'a, I: Iterator<Item = Vec<(f64, f64)>>> From<(I, Option<Config<'a>>)> for 
 
 /// Heatmap chart on a Delaunay mesh given the triangle vertices and values `(vec![(x1,y1),(x2,y2),(x3,y3)],val)`
 pub struct Heatmap {}
-impl<'a, I: Iterator<Item = (Vec<(f64, f64)>, f64)>> From<(I, Option<Config<'a>>)> for Heatmap {
+impl<I: Iterator<Item = (Vec<(f64, f64)>, f64)>> From<(I, Option<Config>)> for Heatmap {
     fn from((iter, config): (I, Option<Config>)) -> Self {
         let config = config.unwrap_or_default().with_colorbar();
         let filename = config
