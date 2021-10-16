@@ -4,7 +4,7 @@ use plotters::prelude::*;
 use std::iter::FromIterator;
 
 /// Line plots
-pub struct Plot {}
+pub struct Plot;
 impl Utils for Plot {}
 /*impl FromIterator<f64> for Plot {
     fn from_iter<I: IntoIterator<Item = f64>>(iter: I) -> Self {

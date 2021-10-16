@@ -28,36 +28,49 @@
 ///
 /// Returns [`Some`] [`Config`]
 /// ```
-/// complot!("filename")
-/// complot!("filename", xlabel="xlabel")
-/// complot!("filename", ylabel="xlabel")
-/// complot!("filename", xlabel="xlabel", ylabel="ylabel")
+/// # #[macro_use] extern crate complot;
+/// # fn main() {
+/// complot!("filename");
+/// complot!("filename", xlabel="xlabel");
+/// complot!("filename", ylabel="xlabel");
+/// complot!("filename", xlabel="xlabel", ylabel="ylabel");
+/// complot!("filename", xlabel="xlabel", ylabel="ylabel", title="title");
+/// # }
 ///```
 #[macro_export]
 macro_rules! complot {
-    ($filename:literal) => {
+    ($filename:expr) => {
         Some(complot::Config::new().filename($filename))
     };
-    ($filename:literal, xlabel=$xlabel:literal) => {
+    ($filename:expr, xlabel=$xlabel:expr) => {
         Some(
             complot::Config::new()
                 .filename($filename)
                 .xaxis(complot::Axis::new().label($xlabel)),
         )
     };
-    ($filename:literal, ylabel=$ylabel:literal) => {
+    ($filename:expr, ylabel=$ylabel:expr) => {
         Some(
             complot::Config::new()
                 .filename($filename)
                 .yaxis(complot::Axis::new().label($ylabel)),
         )
     };
-    ($filename:literal, xlabel=$xlabel:literal, ylabel=$ylabel:literal) => {
+    ($filename:expr, xlabel=$xlabel:expr, ylabel=$ylabel:expr) => {
         Some(
             complot::Config::new()
                 .filename($filename)
                 .xaxis(complot::Axis::new().label($xlabel))
                 .yaxis(complot::Axis::new().label($ylabel)),
+        )
+    };
+    ($filename:expr, xlabel=$xlabel:expr, ylabel=$ylabel:expr, title=$title:expr) => {
+        Some(
+            complot::Config::new()
+                .filename($filename)
+                .xaxis(complot::Axis::new().label($xlabel))
+                .yaxis(complot::Axis::new().label($ylabel))
+                .title($title),
         )
     };
 }
@@ -172,9 +185,12 @@ impl Config {
         }
     }
     /// Sets the graph title
-    pub fn title(self, title: String) -> Self {
+    pub fn title<S>(self, title: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
-            title: Some(title),
+            title: Some(title.into()),
             ..self
         }
     }

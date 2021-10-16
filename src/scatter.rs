@@ -6,7 +6,7 @@ use std::iter::FromIterator;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 /// Scatter plots
-pub struct Scatter {}
+pub struct Scatter;
 impl Utils for Scatter {}
 
 /// Plots scattered data (x,y1), (x,y2), ... with the data formated into an iterator
