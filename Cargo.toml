@@ -14,3 +14,8 @@ categories = ["visualization"]
 colorous = "1.0.3"
 num-traits = "0.2.14"
 plotters = "^0.3"
+
+[features]
+default = ["svg"]
+svg = []
+png = []

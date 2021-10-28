@@ -1,4 +1,4 @@
-use super::{Axis, Config, Utils};
+use crate::{canvas, Axis, Config, Utils};
 use colorous;
 use plotters::prelude::*;
 use std::iter::FromIterator;
@@ -45,8 +45,8 @@ impl Utils for Plot {}
 ///```
 impl FromIterator<(f64, Vec<f64>)> for Plot {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
-        let fig = SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
-        fig.fill(&WHITE).unwrap();
+        let fig = canvas("complot-plot.svg"); //SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
+                                              //        fig.fill(&WHITE).unwrap();
         let xy: Vec<_> = iter.into_iter().collect();
         let (x_max, y_max) = Self::xy_max(&xy);
         let (x_min, y_min) = Self::xy_min(&xy);
@@ -88,7 +88,7 @@ impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
                 .filename
                 .unwrap_or_else(|| "complot-plot.svg".to_string());
 
-            let fig = SVGBackend::new(&filename, (768, 512)).into_drawing_area();
+            let fig = canvas(&filename1); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
             fig.fill(&WHITE)?;
             let xy: Vec<_> = iter.collect();
             let (x_max, y_max) = Plot::xy_max(&xy);
