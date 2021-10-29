@@ -75,7 +75,6 @@ macro_rules! complot {
     };
 }
 
-use std::env;
 mod line;
 pub use line::{LinLog, LogLin, LogLog, Plot};
 mod scatter;
@@ -90,13 +89,13 @@ pub use heatmap::Heatmap;
 
 #[cfg(feature = "svg")]
 pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
-    let plot = SVGBackend::new(filename, (768, 768)).into_drawing_area();
+    let plot = SVGBackend::new(filename, (768, 512)).into_drawing_area();
     plot.fill(&WHITE).unwrap();
     plot
 }
 #[cfg(feature = "png")]
 pub fn canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
-    let plot = BitMapBackend::new(filename, (768, 768)).into_drawing_area();
+    let plot = BitMapBackend::new(filename, (768, 512)).into_drawing_area();
     plot.fill(&WHITE).unwrap();
     plot
 }
