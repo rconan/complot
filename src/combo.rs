@@ -90,7 +90,7 @@ impl From<Complot> for Combo {
                 .flat_map(|(x, y)| y.into_iter().map(|y| (x, y)).collect::<Vec<(f64, f64)>>())
                 .collect();
             match draw {
-                Kind::Scatter(_) => {
+                Kind::Scatter(None) => {
                     for k in 0..n_y {
                         let this_color = colors.next().unwrap().as_tuple();
                         chart
@@ -134,6 +134,35 @@ impl From<Complot> for Combo {
                                 data.iter().skip(k).step_by(n_y).cloned(),
                                 rgb,
                             ))
+                            .unwrap()
+                            .label(label.clone())
+                            .legend(move |(x, y)| {
+                                PathElement::new(vec![(x, y), (x + 20, y)], leg_rgb)
+                            });
+                    }
+                }
+                Kind::Scatter(Some(label)) => {
+                    legend = true;
+                    for k in 0..n_y {
+                        let this_color = colors.next().unwrap().as_tuple();
+                        let rgb = RGBColor(
+                            this_color.clone().0,
+                            this_color.clone().1,
+                            this_color.clone().2,
+                        );
+                        let leg_rgb = RGBColor(
+                            this_color.clone().0,
+                            this_color.clone().1,
+                            this_color.clone().2,
+                        );
+                        chart
+                            .draw_series(
+                                data.iter()
+                                    .skip(k)
+                                    .step_by(n_y)
+                                    .cloned()
+                                    .map(|point| Circle::new(point, 3, rgb)),
+                            )
                             .unwrap()
                             .label(label.clone())
                             .legend(move |(x, y)| {

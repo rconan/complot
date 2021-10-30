@@ -101,7 +101,7 @@ pub fn canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
 }
 
 /// Axis properties
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Axis {
     label: Option<String>,
     range: Option<Range<f64>>,
@@ -130,7 +130,7 @@ impl Axis {
     }
 }
 /// Colorbar properties
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Colorbar {
     cmap: colorous::Gradient,
     label: Option<String>,
@@ -146,7 +146,7 @@ impl Default for Colorbar {
     }
 }
 /// Graph properties
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Config {
     filename: Option<String>,
     title: Option<String>,
