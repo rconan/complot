@@ -1,7 +1,7 @@
 use crate::{canvas, Axis, Config, Utils};
 use colorous;
 use plotters::prelude::*;
-use std::iter::FromIterator;
+use std::{iter::FromIterator, path::Path};
 
 /// Line plots
 pub struct Plot;
@@ -86,9 +86,14 @@ impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
             let config = config.unwrap_or_default();
             let filename = config
                 .filename
-                .unwrap_or_else(|| "complot-plot.svg".to_string());
+                .unwrap_or_else(|| "complot-plot.xxx".to_string());
+            let path = if cfg!(feature = "png") {
+                Path::new(&filename).with_extension("png")
+            } else {
+                Path::new(&filename).with_extension("svg")
+            };
 
-            let fig = canvas(&filename); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
+            let fig = canvas(path.to_str().unwrap()); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
             fig.fill(&WHITE)?;
             let xy: Vec<_> = iter.collect();
             let (x_max, y_max) = Plot::xy_max(&xy);
