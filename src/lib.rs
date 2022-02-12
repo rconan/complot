@@ -88,14 +88,14 @@ mod heatmap;
 pub use heatmap::Heatmap;
 
 #[cfg(feature = "svg")]
-pub fn canvas(filename: &str) -> DrawingArea<SVGBackend, Shift> {
-    let plot = SVGBackend::new(filename, (768, 512)).into_drawing_area();
+pub fn canvas(filename: &str, size: (u32, u32)) -> DrawingArea<SVGBackend, Shift> {
+    let plot = SVGBackend::new(filename, size).into_drawing_area();
     plot.fill(&WHITE).unwrap();
     plot
 }
 #[cfg(feature = "png")]
-pub fn canvas(filename: &str) -> DrawingArea<BitMapBackend, Shift> {
-    let plot = BitMapBackend::new(filename, (768, 512)).into_drawing_area();
+pub fn canvas(filename: &str, size: (u32, u32)) -> DrawingArea<BitMapBackend, Shift> {
+    let plot = BitMapBackend::new(filename, size).into_drawing_area();
     plot.fill(&WHITE).unwrap();
     plot
 }
@@ -156,6 +156,7 @@ pub struct Config {
     cmap_minmax: Option<(f64, f64)>,
     colorbar: Option<Colorbar>,
     osf: usize,
+    legend: Option<Vec<String>>,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -168,6 +169,7 @@ impl Default for Config {
             cmap_minmax: None,
             colorbar: None,
             osf: 2,
+            legend: None,
         }
     }
 }
@@ -193,6 +195,18 @@ impl Config {
     {
         Self {
             title: Some(title.into()),
+            ..self
+        }
+    }
+    /// Sets the legend
+    pub fn legend<S: Into<String>>(self, legend: Vec<S>) -> Self {
+        Self {
+            legend: Some(
+                legend
+                    .into_iter()
+                    .map(|x| x.into())
+                    .collect::<Vec<String>>(),
+            ),
             ..self
         }
     }

@@ -1,5 +1,5 @@
 //! Delaunay triangulation
-use super::{Colorbar, Config};
+use super::{canvas, Colorbar, Config};
 use plotters::prelude::*;
 
 /// Draw a Delaunay mesh given the triangle vertices `vec![(x1,y1),(x2,y2),(x3,y3)]`
@@ -9,9 +9,9 @@ impl<I: Iterator<Item = Vec<(f64, f64)>>> From<(I, Option<Config>)> for Mesh {
         let config = config.unwrap_or_default();
         let filename = config
             .filename
-            .unwrap_or_else(|| "complot-plot.svg".to_string());
+            .unwrap_or_else(|| "complot-tri-mesh.png".to_string());
 
-        let fig = SVGBackend::new(&filename, (768, 768)).into_drawing_area();
+        let fig = canvas(&filename, (768, 768));
         fig.fill(&WHITE).unwrap();
         let xy: Vec<_> = iter.collect();
         let (x_max, y_max) = xy
@@ -72,12 +72,11 @@ impl<I: Iterator<Item = (Vec<(f64, f64)>, f64)>> From<(I, Option<Config>)> for H
         let config = config.unwrap_or_default().with_colorbar();
         let filename = config
             .filename
-            .unwrap_or_else(|| "complot-plot.svg".to_string());
+            .unwrap_or_else(|| "complot-tri-heatmap.png".to_string());
 
         let size = 768usize;
         let cb_size = 80;
-        let root =
-            SVGBackend::new(&filename, (size as u32, size as u32 + cb_size)).into_drawing_area();
+        let root = canvas(&filename, (size as u32, size as u32 + cb_size));
         root.fill(&WHITE).unwrap();
         let (fig, colorbar) = root.split_vertically(size as u32);
         let mut xy: Vec<_> = iter.collect();

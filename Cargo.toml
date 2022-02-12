@@ -16,5 +16,6 @@ num-traits = "0.2.14"
 plotters = "^0.3"
 
 [features]
+default = ["png"]
 svg = []
 png = []

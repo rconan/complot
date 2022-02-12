@@ -43,7 +43,7 @@ impl<'a, T: Float + AsPrimitive<f64>> From<(Data<'a, T>, Option<Config>)> for He
                 .unwrap_or_else(|| "complot-heatmap.png".to_string());
             let cmap = config.cmap;
 
-            let width = size as u32 + 40;
+            let width = size as u32 + 50;
             let height = size as u32 + 90;
             let root = BitMapBackend::new(&filename, (width, height)).into_drawing_area();
             let (plot, colorbar) = root.split_vertically(size as u32 + 30);

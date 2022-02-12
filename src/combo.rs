@@ -22,8 +22,8 @@ impl From<Complot> for Combo {
             .filename
             .unwrap_or_else(|| "complot-plot.svg".to_string());
 
-        let fig = canvas(&filename); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
-                                     //let fig = SVGBackend::new(&filename, (768, 512)).into_drawing_area();
+        let fig = canvas(&filename, (768, 512)); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
+                                                 //let fig = SVGBackend::new(&filename, (768, 512)).into_drawing_area();
         fig.fill(&WHITE).unwrap();
         /*
                 let (xrange, yrange) = match (config.xaxis.range, config.yaxis.range) {

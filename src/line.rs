@@ -45,8 +45,8 @@ impl Utils for Plot {}
 ///```
 impl FromIterator<(f64, Vec<f64>)> for Plot {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
-        let fig = canvas("complot-plot.svg"); //SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
-                                              //        fig.fill(&WHITE).unwrap();
+        let fig = canvas("complot-plot.svg", (768, 512)); //SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
+                                                          //        fig.fill(&WHITE).unwrap();
         let xy: Vec<_> = iter.into_iter().collect();
         let (x_max, y_max) = Self::xy_max(&xy);
         let (x_min, y_min) = Self::xy_min(&xy);
@@ -88,7 +88,7 @@ impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
                 .filename
                 .unwrap_or_else(|| "complot-plot.svg".to_string());
 
-            let fig = canvas(&filename); //SVGBackend::new(&filename, (768, 512)).into_drawing_area();
+            let fig = canvas(&filename, (768, 512));
             fig.fill(&WHITE)?;
             let xy: Vec<_> = iter.collect();
             let (x_max, y_max) = Plot::xy_max(&xy);
@@ -124,15 +124,41 @@ impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
                 .flat_map(|(x, y)| y.into_iter().map(|y| (x, y)).collect::<Vec<(f64, f64)>>())
                 .collect();
             let mut colors = colorous::TABLEAU10.iter().cycle();
-            for k in 0..n_y {
-                let this_color = colors
-                    .next()
-                    .ok_or("Couldn't get another color.")?
-                    .as_tuple();
-                chart.draw_series(LineSeries::new(
-                    data.iter().skip(k).step_by(n_y).cloned(),
-                    RGBColor(this_color.0, this_color.1, this_color.2),
-                ))?;
+            if let Some(legend) = config.legend {
+                for (k, key) in (0..n_y).zip(legend.into_iter()) {
+                    let this_color = colors
+                        .next()
+                        .ok_or("Couldn't get another color.")?
+                        .as_tuple();
+                    let rgb = RGBColor(this_color.0, this_color.1, this_color.2);
+                    chart
+                        .draw_series(LineSeries::new(
+                            data.iter().skip(k).step_by(n_y).cloned(),
+                            &rgb,
+                            //BLACK.mix(0.25),
+                        ))?
+                        .label(key)
+                        .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &rgb));
+                }
+                chart
+                    .configure_series_labels()
+                    .border_style(&BLACK)
+                    .background_style(&WHITE.mix(0.8))
+                    .position(SeriesLabelPosition::UpperRight)
+                    .draw()
+                    .unwrap();
+            } else {
+                for k in 0..n_y {
+                    let this_color = colors
+                        .next()
+                        .ok_or("Couldn't get another color.")?
+                        .as_tuple();
+                    chart.draw_series(LineSeries::new(
+                        data.iter().skip(k).step_by(n_y).cloned(),
+                        RGBColor(this_color.0, this_color.1, this_color.2),
+                        //BLACK.mix(0.25),
+                    ))?;
+                }
             }
             Ok(())
         }
