@@ -1,6 +1,6 @@
 [package]
 name = "complot"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Rod Conan <rconan@gmto.org>"]
 edition = "2018"
 license = "MIT"
