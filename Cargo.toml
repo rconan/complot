@@ -1,6 +1,6 @@
 [package]
 name = "complot"
-version = "0.3.2"
+version = "0.3.4"
 authors = ["Rod Conan <rconan@gmto.org>"]
 edition = "2018"
 license = "MIT"
@@ -19,3 +19,4 @@ plotters = "^0.3"
 default = ["png"]
 svg = []
 png = []
+

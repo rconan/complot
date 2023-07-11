@@ -86,14 +86,14 @@ impl<I: Iterator<Item = (f64, Vec<f64>)>> From<(I, Option<Config>)> for Plot {
             let config = config.unwrap_or_default();
             let filename = config
                 .filename
-                .unwrap_or_else(|| "complot-plot.xxx".to_string());
+                .unwrap_or_else(|| "complot-plot".to_string());
             let path = if cfg!(feature = "png") {
                 Path::new(&filename).with_extension("png")
             } else {
                 Path::new(&filename).with_extension("svg")
             };
 
-            let fig = canvas(&filename, (768, 512));
+            let fig = canvas(path.to_str().unwrap(), (768, 512));
             fig.fill(&WHITE)?;
             let xy: Vec<_> = iter.collect();
             let (x_max, y_max) = Plot::xy_max(&xy);
