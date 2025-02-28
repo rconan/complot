@@ -45,8 +45,15 @@ impl Utils for Plot {}
 ///```
 impl FromIterator<(f64, Vec<f64>)> for Plot {
     fn from_iter<I: IntoIterator<Item = (f64, Vec<f64>)>>(iter: I) -> Self {
-        let fig = canvas("complot-plot.svg", (768, 512)); //SVGBackend::new("complot-plot.svg", (768, 512)).into_drawing_area();
-                                                          //        fig.fill(&WHITE).unwrap();
+        let filename = "complot-plot";
+        let path = if cfg!(feature = "png") {
+            Path::new(filename).with_extension("png")
+        } else {
+            Path::new(filename).with_extension("svg")
+        };
+
+        let fig = canvas(path.to_str().unwrap(), (768, 512));
+        //        fig.fill(&WHITE).unwrap();
         let xy: Vec<_> = iter.into_iter().collect();
         let (x_max, y_max) = Self::xy_max(&xy);
         let (x_min, y_min) = Self::xy_min(&xy);
